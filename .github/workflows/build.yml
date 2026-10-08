@@ -1,0 +1,78 @@
+name: Dual Recovery Signed Cloud Builder
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+    - name: Clean Environment and Maximize Storage Space
+      uses: easimon/maximize-build-space@main
+      with:
+        root-reserve-mb: 8192
+        temp-reserve-mb: 4096
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+
+    - name: Checkout Local Repository Tree
+      uses: actions/checkout@v4
+
+    - name: Install Architecture Build Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3 openjdk-11-jdk cpio
+
+    - name: Setup Google Repo Command Line Tool
+      run: |
+        mkdir -p ~/bin
+        curl https://googleapis.com > ~/bin/repo
+        chmod a+x ~/bin/repo
+        echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Initialize Recovery Workspace Source Code Tree
+      run: |
+        export PATH=$HOME/bin:$PATH
+        mkdir workspace
+        cd workspace
+        git config --global user.name "Dylan"
+        git config --global user.email "dylan@example.com"
+        # Syncing minimal Android 12.1 recovery manifest base environment
+        repo init --depth=1 -u https://github.com -b twrp-12.1
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+    - name: Inject Device Configurations and Private Signing Keys
+      run: |
+        mkdir -p workspace/device/blackview/shark6
+        cp -r shark6_device/blackview/shark6/* workspace/device/blackview/shark6/
+
+    - name: Compile Signed TWRP Recovery Target Image
+      run: |
+        export PATH=$HOME/bin:$PATH
+        cd workspace
+        . build/envsetup.sh
+        lunch twrp_shark6-eng
+        mka recoveryimage -j$(nproc --all)
+        cp out/target/product/shark6/recovery.img ../twrp_signed_shark6.img
+        make clean
+
+    - name: Compile Signed OrangeFox Recovery Target Image
+      run: |
+        export PATH=$HOME/bin:$PATH
+        cd workspace
+        . build/envsetup.sh
+        lunch fox_shark6-eng
+        mka recoveryimage -j$(nproc --all)
+        cp out/target/product/shark6/recovery.img ../orangefox_signed_shark6.img
+
+    - name: Archive and Upload Signed Production Releases
+      uses: actions/upload-artifact@v4
+      with:
+        name: Signed-Custom-Recoveries
+        path: |
+          twrp_signed_shark6.img
+          orangefox_signed_shark6.img

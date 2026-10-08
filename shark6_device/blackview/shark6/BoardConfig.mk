@@ -1,0 +1,59 @@
+DEVICE_PATH := device/blackview/shark6
+
+# Architecture
+TARGET_ARCH := arm64
+TARGET_ARCH_VARIANT := armv8-a
+TARGET_CPU_ABI := arm64-v8a
+TARGET_CPU_ABI2 := 
+TARGET_CPU_VARIANT := generic
+
+TARGET_2ND_ARCH := arm
+TARGET_2ND_ARCH_VARIANT := armv7-a-neon
+TARGET_2ND_CPU_ABI := armeabi-v7a
+TARGET_2ND_CPU_ABI2 := armeabi
+TARGET_2ND_CPU_VARIANT := generic
+
+# Platform & Bootloader
+TARGET_BOARD_PLATFORM := ums9620
+TARGET_BOOTLOADER_BOARD_NAME := shark6
+BOARD_HAS_LARGE_FILESYSTEM := true
+
+# Kernel / Boot Image Header Layout (Android 15 Standard)
+BOARD_BOOT_HEADER_VERSION := 4
+BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
+
+# AVB / Cryptographic Signing Configurations (For Fused Hardware Verification)
+BOARD_AVB_ENABLE := true
+BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS := --flags 2
+BOARD_AVB_RECOVERY_KEY_PATH := $(DEVICE_PATH)/keys/custom_avb_priv.pem
+BOARD_AVB_RECOVERY_ALGORITHM := SHA256_RSA4096
+BOARD_AVB_RECOVERY_ROLLBACK_INDEX := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
+BOARD_AVB_RECOVERY_ROLLBACK_INDEX_LOCATION := 1
+
+# File System Mappings
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
+
+# Storage Recovery Targets
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+
+# TWRP Configuration Flags
+TW_THEME := portrait_hdpi
+TW_EXTRA_LANGUAGES := true
+TW_INCLUDE_CRYPTO := true
+TW_INPUT_BLACKLIST := "hbtp_vm"
+TW_EXCLUDE_APEX := true
+
+# OrangeFox Custom Recovery Configuration Flags
+FOX_VERSION := "R11.1_1"
+FOX_BUILD_TYPE := "Stable"
+MAIN_MAINTAINER := "Dylan"
+FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER := 1
+FOX_VANILLA_BUILD := 0
+
+# OrangeFox Directory Handling & Theme Defaults
+FOX_USE_SPECIFIC_ARCH := arm64
+FOX_REPLACE_BUSYBOX := 1
+FOX_RECOVERY_INSTALL_DIR := /system/bin
+OF_DISABLE_MIUI_SPECIFIC_FEATURES := 1
+OF_MAINTAINER_AVATAR := $(DEVICE_PATH)/recovery/root/avatar.png

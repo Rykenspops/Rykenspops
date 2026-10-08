@@ -1,0 +1,12 @@
+# mount point       fstype    device                                                                flags
+/system             ext4      system                                                                slotselect,logical,first_stage_mount
+/vendor             ext4      vendor                                                                slotselect,logical,first_stage_mount
+/product            ext4      product                                                               slotselect,logical,first_stage_mount
+/metadata           ext4      /dev/block/by-name/metadata                                           flags=display="Metadata";backup=1
+/data               f2fs      /dev/block/by-name/userdata                                           flags=fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized+wrappedkey_v0
+/boot               emmc      /dev/block/by-name/boot                                               flags=slotselect;display="Boot";backup=1;flashimg=1
+/vendor_boot        emmc      /dev/block/by-name/vendor_boot                                        flags=slotselect;display="Vendor Boot";backup=1;flashimg=1
+/vbmeta             emmc      /dev/block/by-name/vbmeta                                             flags=slotselect;display="VBMeta";backup=1;flashimg=1
+/vbmeta_vendor      emmc      /dev/block/by-name/vbmeta_vendor                                      flags=slotselect;display="VBMeta Vendor";backup=1;flashimg=1
+/external_sd        vfat      /dev/block/mmcblk1p1                  /dev/block/mmcblk1              flags=display="MicroSD Card";storage;wipeui;removable
+/usb_otg            vfat      /dev/block/sda1                       /dev/block/sda                  flags=display="USB OTG";storage;wipeui;removable
