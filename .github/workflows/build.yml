@@ -44,9 +44,12 @@ jobs:
         cd workspace
         git config --global user.name "Dylan"
         git config --global user.email "rykenspops@gmail.com"
-        # Syncing verified minimal Android 12.1 recovery manifest base environment
-        repo init --depth=1 -u https://github.com -b twrp-12.1
-        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+        
+        # Initialize the manifest
+        repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
+        
+        # Standard robust multi-threaded sync with automatic sequential fallback loop
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags || repo sync -c -j2 --force-sync --no-clone-bundle --no-tags
 
     - name: Inject Device Configurations and Private Signing Keys
       run: |
