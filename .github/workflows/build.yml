@@ -6,6 +6,8 @@ on:
 jobs:
   compile:
     runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/ryu-sc/docker-aosp-build:latest
     permissions:
       contents: write
 
@@ -13,48 +15,34 @@ jobs:
     - name: Checkout Local Repository Tree
       uses: actions/checkout@v4
 
+    - name: Fix Git Safe Directory Configuration
+      run: |
+        git config --global --add safe.directory /__w/Rykenspops/Rykenspops
+        git config --global --add safe.directory /__w/Rykenspops/Rykenspops/workspace
+
     - name: Clean Environment and Maximize Storage Space
       run: |
         echo "=== Pre-cleanup Disk Status ==="
         df -h
         echo "=== Dropping Large Tooling Sets ==="
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        rm -rf /usr/share/dotnet || true
+        rm -rf /usr/local/lib/android || true
+        rm -rf /opt/ghc || true
         echo "=== Post-cleanup Disk Status ==="
         df -h
 
-    - name: Setup Legacy Python Runtime for Google Repo
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install Architecture Build Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev openjdk-11-jdk cpio
-
-    - name: Setup Google Repo Command Line Tool
-      run: |
-        mkdir -p ~/bin
-        curl https://googleapis.com > ~/bin/repo
-        chmod a+x ~/bin/repo
-        echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
-
     - name: Initialize Recovery Workspace Source Code Tree
       run: |
-        export PATH=$HOME/bin:$PATH
-        mkdir workspace
+        mkdir -p workspace
         cd workspace
         git config --global user.name "Dylan"
         git config --global user.email "rykenspops@gmail.com"
         
-        # Initializing manifest execution explicitly targeting the runtime setup layer
-        python3 ~/bin/repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
+        # Initialize manifest utilizing the prebuilt container tools
+        repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
         
-        # Standard robust multi-threaded sync with automatic sequential fallback loop
-        python3 ~/bin/repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags || python3 ~/bin/repo sync -c -j2 --force-sync --no-clone-bundle --no-tags
+        # Synchronize manifest source structures
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags || repo sync -c -j2 --force-sync --no-clone-bundle --no-tags
 
     - name: Inject Device Configurations and Private Signing Keys
       run: |
@@ -63,7 +51,6 @@ jobs:
 
     - name: Compile Signed TWRP Recovery Target Image
       run: |
-        export PATH=$HOME/bin:$PATH
         cd workspace
         . build/envsetup.sh
         lunch twrp_shark6-eng
@@ -73,7 +60,6 @@ jobs:
 
     - name: Compile Signed OrangeFox Recovery Target Image
       run: |
-        export PATH=$HOME/bin:$PATH
         cd workspace
         . build/envsetup.sh
         lunch fox_shark6-eng
