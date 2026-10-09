@@ -45,7 +45,7 @@ jobs:
         git config --global user.name "Dylan"
         git config --global user.email "rykenspops@gmail.com"
         
-        # Initialize the manifest
+        # Switched to the official high-availability TWRP minimal manifest platform link
         repo init --depth=1 --no-repo-verify -u https://github.com -b twrp-12.1
         
         # Standard robust multi-threaded sync with automatic sequential fallback loop
