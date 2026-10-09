@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Clean Environment and Maximize Storage Space
-      uses: easimon/maximize-build-space@main
+      uses: easimon/maximize-build-space@v2
       with:
         root-reserve-mb: 8192
         temp-reserve-mb: 4096
@@ -40,8 +40,8 @@ jobs:
         mkdir workspace
         cd workspace
         git config --global user.name "Dylan"
-        git config --global user.email "dylan@example.com"
-        # Syncing minimal Android 12.1 recovery manifest base environment
+        git config --global user.email "rykenspops@gmail.com"
+        # Syncing verified minimal Android 12.1 recovery manifest base environment
         repo init --depth=1 -u https://github.com -b twrp-12.1
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
